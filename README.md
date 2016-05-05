@@ -12,11 +12,17 @@ Role Variables
 --------------
 
 `containers.cidr: "192.168.0.0/16"`
+
 `etcd.address: "{{ ansible_default_ipv4.address }}"`
+
 `etcd.port: 2379`
+
 `k8s.master_address: "{{ ansible_default_ipv4.address }}"`
+
 `k8s.cidr: "10.100.0.0/16"`
+
 `k8s.port: 8080`
+
 `k8s.bind_mask: "0.0.0.0"`
 
 Dependencies

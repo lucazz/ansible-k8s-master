@@ -1,0 +1,25 @@
+galaxy_info:
+  author: Lucas do Amaral Saboya
+  description: Simple Ansible role to install Kubernetes Master
+  company: HE:labs
+  license: BSD
+  min_ansible_version: 2
+  platforms:
+  - name: EL
+    versions:
+    - 6
+    - 7
+  - name: Ubuntu
+    versions:
+    - trusty
+    - xenial
+  - name: Debian
+    versions:
+    - jessie
+  galaxy_tags:
+    - kubernetes
+    - master
+dependencies:
+  - lucazz.etcd
+  - lucazz.calico
+  - lucazz.k8s-kubelet

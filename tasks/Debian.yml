@@ -1,0 +1,10 @@
+---
+- name: Installing Kubernetes dependencies
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - golang
+    - git
+    - docker.io
+    - awscli

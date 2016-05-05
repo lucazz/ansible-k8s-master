@@ -1,0 +1,12 @@
+---
+# defaults file for lucazz.k8s-master
+containers:
+  cidr: "192.168.0.0/16"
+etcd:
+  address: "{{ ansible_default_ipv4.address }}"
+  port: 2379
+k8s:
+  master_address: "{{ ansible_default_ipv4.address }}"
+  cidr: "10.100.0.0/16"
+  port: 8080
+  bind_mask: "0.0.0.0"

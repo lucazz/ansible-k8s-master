@@ -1,0 +1,86 @@
+---
+# tasks file for lucazz.k8s-master
+- name: main.yml | Fetching EC2 instances facts
+  action: ec2_facts
+
+- include: Redhat.yml
+  when: ansible_os_family == "Redhat"
+
+- include: Debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: main.yml | Fetching Calico facts
+  shell: "calicoctl pool show | grep {{ containers.cidr }} | grep ipip"
+  register: calico_facts
+  ignore_errors: true
+
+- name: main.yml | Stting up calico networking
+  shell: "calicoctl pool add {{ containers.cidr }} --nat-outgoing --ipip"
+  when: calico_facts|failed
+
+- name: main.yml | Templating out Kubernetes master manifests
+  template:
+    src: "{{ item.src }}"
+    dest: "/etc/kubernetes/manifests/{{ item.dst }}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - { src: 'apiserver.yaml.j2', dst: 'apiserver.yaml' }
+    - { src: 'controller-manager.yaml.j2', dst: 'controller-manager.yaml' }
+    - { src: 'proxy.yaml.j2', dst: 'proxy.yaml'}
+    - { src: 'scheduler.yaml.j2', dst: 'scheduler.yaml' }
+
+- name: main.yml | Templating out Kubernetes setup manifests
+  template:
+    src: "{{ item.src }}"
+    dest: "/etc/kubernetes/setup/{{ item.dst }}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - { src: 'heapster.yml.j2', dst: 'heapster.yml' }
+    - { src: 'ns.dev.yaml.j2', dst: 'ns.dev.yaml' }
+    - { src: 'ns.kube-system.yaml.j2', dst: 'ns.kube-system.yaml' }
+    - { src: 'ns.prod.yaml.j2', dst: 'ns.prod.yaml' }
+    - { src: 'ns.stg.yaml.j2', dst: 'ns.stg.yaml' }
+    - { src: 'skydns.yml.j2', dst: 'skydns.yml' }
+
+- name: main.yml | Templating out etcd backup script
+  template:
+    src: ectd-backup.j2
+    dest: "/usr/local/sbin/etcd-backup"
+    owner: root
+    group: root
+    mode: 0700
+
+- name: main.yml | Creating backup cron job
+  cron:
+    name: "etcd backup"
+    minute: "0"
+    hour: "*/6"
+    job: "/usr/local/sbin/etcd-backup > /dev/null 2>&1"
+
+- name: main.yml | Fetching k8s namespaces
+  shell: "kubectl get namespaces"
+  register: k8s_namespaces
+  ignore_errors: true
+
+- name: main.yml | Installing Kubernetes namespaces
+  shell: "kubectl create -f /etc/kubernetes/setup/ns.{{ item }}.yaml"
+  when: "k8s_namespaces.stdout.find({{ item }}) == -1"
+  with_items:
+    - kube-system
+    - prod
+    - stg
+    - dev
+
+- name: main.yml | Fetching Kubernetes replication controllers
+  shell: "kubectl get rc --all-namespaces"
+  register: k8s_rcs
+  ignore_errors: true
+
+- name: Main.yml | Installing kube-system RCs and Services
+  shell: "kubectl create -f /etc/kubernetes/setup/{{ item.key }}.yml"
+  when: "k8s_rcs.stdout.find({{ item.key }}) == -1"
+  with_dict: "{{ controllers }}"

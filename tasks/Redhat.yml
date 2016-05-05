@@ -1,0 +1,10 @@
+---
+- name: Installing Kubernetes dependencies
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - golang
+    - git
+    - docker-engine
+    - awscli

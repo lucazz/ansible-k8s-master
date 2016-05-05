@@ -1,0 +1,21 @@
+#!/bin/bash
+
+stop etcd
+
+TS=$(date +%Y%m%d-%H)
+DIR="/tmp/etcd_backup_${TS}"
+mkdir ${DIR}
+cd ${DIR}
+
+etcdctl backup \
+      --data-dir /var/lib/etcd \
+      --backup-dir ${DIR}
+
+start  etcd
+
+cd /tmp
+tar -czf etcd_backup_${TS}.tar.gz etcd_backup_${TS}
+
+aws s3 cp /tmp/etcd_backup_${TS}.tar.gz s3://kubernetes-etcd-backup/etcd_backup_${TS}.tar.gz --region=us-east-1
+
+rm -rf /tmp/etcd_backup_${TS}.tar.gz ${DIR}

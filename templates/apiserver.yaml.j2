@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-apiserver
+  namespace: kube-system
+  labels:
+    k8s-app: kube-apiserver
+    version: v1.2.0-alpha.7.853
+    kubernetes.io/cluster-service: "true"
+spec:
+  hostNetwork: true
+  containers:
+  - name: kube-apiserver
+    image: gcr.io/google_containers/hyperkube:v1.1.7
+    command:
+    - /hyperkube
+    - apiserver
+    - --etcd-servers=http://{{ etcd.address }}:{{ etcd.port }}
+    - --service-cluster-ip-range={{ k8s.cidr }}
+    - --port={{ k8s.port }}
+    - --address={{ k8s.bind_mask }}
+    - --runtime-config=extensions/v1beta1/daemonsets=true
+    - --runtime-config=extensions/v1beta1/deployments=true
+    - --v=0
+    - --allow-privileged=true
+    ports:
+    - containerPort: 8080
+      hostPort: 8080
+      name: local

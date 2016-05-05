@@ -2,6 +2,7 @@ Kubernetes Master Node Role
 =========
 
 [![Build Status](https://travis-ci.org/lucazz/ansible-k8s-master.svg?branch=master)](https://travis-ci.org/lucazz/ansible-k8s-master)
+
 Simple Ansible role to installs and configures a Kubernetes Master
 
 Requirements

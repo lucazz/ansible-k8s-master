@@ -40,11 +40,20 @@
     mode: 0600
   with_items:
     - { src: 'heapster.yml.j2', dst: 'heapster.yml' }
-    - { src: 'ns.dev.yaml.j2', dst: 'ns.dev.yaml' }
     - { src: 'ns.kube-system.yaml.j2', dst: 'ns.kube-system.yaml' }
-    - { src: 'ns.prod.yaml.j2', dst: 'ns.prod.yaml' }
-    - { src: 'ns.stg.yaml.j2', dst: 'ns.stg.yaml' }
     - { src: 'skydns.yml.j2', dst: 'skydns.yml' }
+
+- name: main.yml | Templating out Kubernetes namespace setup manifests
+  template:
+    src: ns.template.yaml.j2
+    dest: "/etc/kubernetes/setup/{{ item.dst }}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items:
+    - { env: 'dev', dst: 'ns.dev.yaml' }
+    - { env: 'prod', dst: 'ns.prod.yaml' }
+    - { env: 'stg', dst: 'ns.stg.yaml' }
 
 - name: main.yml | Templating out etcd backup script
   template:
